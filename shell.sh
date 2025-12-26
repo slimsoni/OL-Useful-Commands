@@ -9,7 +9,9 @@ sudo cat /var/log/messages
 # Kill process by PID
 kill <PID>  # Use 'ps aux' or 'top' to identify PID
 
-# TOP shortcuts
+
+
+#==== TOP arguments:
 #   k - Kill process
 #   M - Sort by memory
 #   N - Sort by PID
@@ -21,8 +23,19 @@ kill <PID>  # Use 'ps aux' or 'top' to identify PID
 #   x/y - Highlight sort/running
 #   L,&,<,> - Locate/sort
 #   CTRL+C or q - Quit
+#==== Top remember info:
+# us – Tempo gasto em espaço de usuário (aplicações).
+# sy – Tempo gasto no kernel (sistema).
+# id – Tempo ocioso (idle).
+# wa – Tempo esperando por I/O de disco.
+# hi, si, st – Interrupções e steal time (menos relevantes aqui).
+#==== Top command sintax:
 
-top
+$ top <argument>
+
+
+
+
 
 # Memory usage
 free -h
@@ -39,11 +52,23 @@ grep -w MAP *.prm
 # Grep across files and return filenames
 grep -l NODISCARDFILE *
 
+# Grep with subdirs, excluding specific one, called artifacts in this example
+grep -R --exclude-dir=artifacts "gitlab" *
+
+# Grep to count number of occurrences ( wc -l ) of a string:
+[oracle@sp3linoragghub01 dirrpt]$ grep -i "ORA_MTRH.CC_CC"  R_INTCSD0.dsc | wc -l
+68426
+[oracle@sp3linoragghub01 dirrpt]$ grep -i "ORA_MTRH.CC_HISTORICO"  R_INTCSD0.dsc | wc -l
+0
+[oracle@sp3linoragghub01 dirrpt]$ grep -i "ORA_MTRH.CC_LANCAMENTO"  R_INTCSD0.dsc | wc -l
+0
+
+
 # Fix backspace key issue
 stty erase ^H
 
 # View non-comment, non-empty lines
-cat template.rsp | grep -v '^#' | grep '\\S'
+cat template.rsp | grep -v '^#' | grep '\S'
 
 # Show IP
 ifconfig
@@ -51,8 +76,16 @@ ifconfig
 # Directory size by depth
 sudo du -mh --max-depth 1 /u01 | sort -n | grep G
 
-# Check open port
-netstat -putona | grep 7809
+# Check tcp open ports
+netstat -putona
+
+# Check upd ports
+netstat -tulnap 
+
+# To check listening upd - ports Like telnet but for udp ports
+$ nc -u -v  <ip> <udp-port>
+Ncat: Version X ( https://nmap.org/ncat )
+Ncat: Connected to <ip>:<udp-port>.
 
 # Firewall commands
 systemctl status firewalld
@@ -66,7 +99,7 @@ diff -w file1 file2
 # Remove directory recursively
 rm -rf <dir>
 
-# OS info
+# OS info | kernel info 
 cat /etc/os-release
 uname -m
 hostnamectl
@@ -106,10 +139,15 @@ adduser oracle
 useradd -d /home/oracle -u 500 -g oinstall -G oinstall -m -s /bin/bash oracle
 usermod -aG oinstall oracle
 
+# Apply the new group membership without logging out
+newgrp docker
+
+
 # Confirm groups
 groups oracle
 cat /etc/group | grep oinstall
 cat /etc/passwd | grep oracle
+
 
 # SSH to alternate hosts
 ssh user@host
@@ -156,7 +194,11 @@ export TZ=America/Sao_Paulo
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Remove lines containing word
-sed -i -e "s|teste.*||g" file
+sed -i -e "s|teste.*||g" your_file_name
+## SED command to replace EVERY original_string in your_file_name to the new_string : 
+sed -i 's/<original_string>/<new_string>/g' your_file_name
+sed -i 's/$((SERVICEMANAGER_PORT + 2))/7832/g' your_file_name
+sed -i "s#\$(echo \$DEPLOY_NAME | tr -d '')#dp_daa#g" your_file_name
 
 # IPTABLES commands
 iptables -L --line-numbers
@@ -241,6 +283,7 @@ dmsetup info /dev/dm-X
 sudo lvdisplay | awk '/LV Name/{n=$3} /Block device/{d=$3; sub(".*:","dm-",d); print d,n;}'
 
 # X11 forwarding setup
+ssh -Y user@address 
 xauth merge /home/user/.Xauthority
 xeyes
 
@@ -276,3 +319,56 @@ echo "DenyUsers oracle" >> /etc/ssh/sshd_config
 kill -HUP $(pgrep -o sshd)
 sed -i "s|DenyUsers oracle||g" /etc/ssh/sshd_config
 kill -HUP $(pgrep -o sshd)
+
+
+## To unzip gzip files
+# -x: Extract
+# -z: Decompress using gzip
+# -v: Verbose (show progress)
+# -f: Specify the filename
+$ tar -xzvf Python-3.13.5.tgz
+
+
+# Just a extra info about CIDR:
+Notação CIDR	Tamanho do "Bairro"	Exemplo de Uso
+/32	1 endereço	Um único computador. O mais específico.
+/24	256 endereços	Uma rede de escritório pequena.
+/16	65.536 endereços	Uma rede corporativa maior.
+/8	16.777.216 endereços	Uma rede gigantesca.
+/0	Todos os 4 bilhões de endereços	A Internet inteira. (0.0.0.0/0)
+
+
+
+# while example:
+#!/bin/bash
+
+i=01
+while (( i < 51 ))
+do
+    echo "${i}"
+    ((i++))
+done
+
+
+
+# Comparing file content with intersession concept:
+## (comm -12 >> require sorted files)
+
+$ cat banana
+banana
+-
+maça
+
+$ cat maça
+maça
+:
+banana
+
+$ sort banana > banana_s ; sort maça > maça_s ; comm -12 banana_s maça_s
+banana
+maça
+
+
+# Conditional assigning:
+## DATA = strings between  ('@' and '&') or ('@' and '@')
+    data=$(echo "$decoded" | grep -oP '(?<=@).*?(?=&)')
