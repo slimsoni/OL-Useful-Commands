@@ -155,6 +155,9 @@ ssh user@host
 # Find directory with special chars
 find / -type d -name 'directory*name#?%'
 
+# Find all files in a specific directory that were modified more than 7 days ago.
+find /directory/ -type f -mtime +7
+
 # Mass substitution
 find . -type f -exec sed -i 's/DADOS_/DATA_/gI' {} +
 
